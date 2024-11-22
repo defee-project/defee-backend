@@ -1,0 +1,10 @@
+### sign-up
+POST http://localhost:3000/api/user/signup
+content-type: application/json
+
+{
+  "email": "test@test.com",
+  "username": "test",
+  "password": "test",
+  "blog_url": "https://test.com"
+}

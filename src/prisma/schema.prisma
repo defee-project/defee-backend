@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  user_id   Int        @id @default(autoincrement())
+  email     String     @unique
+  password  String
+  username  String     @unique
+  blog_url  String?
+  bookmarks Bookmark[] @relation("UserBookmarks")
+  follows   Follow[]   @relation("UserFollows")
+}
+
+model Bookmark {
+  bookmark_id          Int    @id @default(autoincrement())
+  bookmark_folder_name String
+  user_id              Int
+  user                 User   @relation("UserBookmarks", fields: [user_id], references: [user_id], onDelete: Cascade)
+  posts                Post[] @relation("BookmarkPosts")
+}
+
+model Post {
+  post_id       Int        @id @default(autoincrement())
+  title         String
+  url           String
+  author        String
+  platform      Platform
+  date          DateTime
+  score         Float
+  thumbnail_url String?
+  bookmarks     Bookmark[] @relation("BookmarkPosts")
+  keywords      Keyword[]  @relation("KeywordPosts")
+
+  @@index([title])
+}
+
+model Keyword {
+  keyword_id Int    @id @default(autoincrement())
+  keyword    String
+  posts      Post[] @relation("KeywordPosts")
+}
+
+model Follow {
+  follow_id         Int    @id @default(autoincrement())
+  follw_folder_name String
+  user_id           Int
+  user              User   @relation("UserFollows", fields: [user_id], references: [user_id], onDelete: Cascade)
+}
+
+enum Platform {
+  VELOG
+  TISTORY
+  GITBLOG
+}
