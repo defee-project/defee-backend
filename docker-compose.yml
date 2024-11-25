@@ -2,7 +2,7 @@
 ## docker-compose down
 
 services:
-  db:
+  defee_db:
     image: mysql:8.0
     container_name: defee_db
     environment: 
@@ -16,16 +16,21 @@ services:
     volumes:
       - db_data:/var/lib/mysql
 
-  nestapp:
+  defee_nestapp:
     build: .
     container_name: defee_nestapp
     depends_on:
-      - db
+      - defee_db
     environment:
       TZ: Asia/Seoul
-      DATABASE_URL: mysql://root:${MYSQL_PASSWORD}@defee_db:3306/defee
+      DATABASE_URL: mysql://defee:${MYSQL_PASSWORD}@defee_db:3306/defee
+    volumes:
+      - .:/app
+      - /app/node_modules
     ports:
       - "443:3000"
+    command: >
+      sh -c "sleep 10 && npx prisma migrate deploy && npm run start:dev"
 
 volumes:
   db_data:
