@@ -14,6 +14,6 @@ COPY . /app/
 
 RUN npm run prisma:generate
 
-CMD ["sh", "-c", "npx prisma migrate deploy && npx nest start"]
+CMD ["npm", "start:dev"]
 
 EXPOSE 3000
