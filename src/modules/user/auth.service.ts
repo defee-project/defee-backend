@@ -8,7 +8,7 @@ import {
 import { SignupDto } from './dtos/signup.dto';
 import { UserService } from './user.service';
 import { JwtService } from '@nestjs/jwt';
-import { hashPassword, comparePassword } from 'src/common/utils/bcrypt.utils';
+import { hashPassword, comparePassword } from '../../common/utils/bcrypt.utils';
 import { LoginDto } from './dtos/login.dto';
 import { access } from 'fs';
 

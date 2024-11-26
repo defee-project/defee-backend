@@ -72,11 +72,11 @@ export class UserController {
     }
   }
 
-  @Post('/verifyemail')
+  @Post('/checkemail')
   @ApiOperation({ summary: '이메일 중복 체크' })
   @ApiResponse({ status: 200, description: '사용 가능한 이메일입니다.' })
   @ApiResponse({ status: 409, description: '이미 존재하는 이메일입니다.' })
-  async verifyEmail(@Body() body: { email: string }) {
+  async checkEmail(@Body() body: { email: string }) {
     const user = await this.userService.findOneByEmail(body.email);
     if (user) {
       throw new ConflictException('이미 존재하는 이메일입니다.');
