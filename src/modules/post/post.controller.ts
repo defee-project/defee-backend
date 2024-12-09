@@ -6,16 +6,13 @@ import { ApiOperation } from '@nestjs/swagger';
 export class PostController {
   constructor(private postService: PostService) {}
 
-  @Get('post')
+  @Get('headline')
   @ApiOperation({ summary: '헤드라인' })
   async getPost(
     @Query('page') page: number,
     @Query('bookmark') bookmark?: string,
     @Query('keyword') keyword?: string,
   ) {
-    if (!page || page < 0) {
-      throw new BadRequestException('유효한 페이지 번호를 입력하세요.');
-    }
     const result = await this.postService.getList(keyword, bookmark, page);
     return result;
   }
@@ -26,7 +23,7 @@ export class PostController {
     @Query('page') page: number,
     @Query('keyword') keyword?: string,
   ) {
-    if (!page || page < 0) {
+    if (!page || page < -1) {
       throw new BadRequestException('유효한 페이지 번호를 입력하세요.');
     }
 
@@ -40,7 +37,7 @@ export class PostController {
     @Query('page') page: number,
     @Query('bookmark') bookmark?: string,
   ) {
-    if (!page || page < 0) {
+    if (!page || page < -1) {
       throw new BadRequestException('유효한 페이지 번호를 입력하세요.');
     }
     const result = await this.postService.getKeywordList(bookmark, page);

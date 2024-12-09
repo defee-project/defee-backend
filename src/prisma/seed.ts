@@ -1,145 +1,219 @@
-import { PrismaClient } from '@prisma/client';
+import { Platform, PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // User 데이터 추가
-  const users = await prisma.user.createMany({
-    data: [
-      {
-        email: 'user1@example.com',
-        password: 'password123',
-        username: 'user1',
-        blog_url: 'https://blog1.com',
-      },
-      {
-        email: 'user2@example.com',
-        password: 'password123',
-        username: 'user2',
-        blog_url: 'https://blog2.com',
-      },
-      {
-        email: 'user3@example.com',
-        password: 'password123',
-        username: 'user3',
-        blog_url: null,
-      },
-    ],
-  });
-
-  console.log(`${users.count} users added`);
-
-  // Bookmark 데이터 추가
-  const bookmarks = await prisma.bookmark.createMany({
-    data: [
-      { bookmark_folder_name: 'Tech Articles', user_id: 1 },
-      { bookmark_folder_name: 'My Favorite Posts', user_id: 1 },
-      { bookmark_folder_name: 'Learning Resources', user_id: 2 },
-    ],
-  });
-
-  console.log(`${bookmarks.count} bookmarks added`);
-
-  // Post 데이터 추가
-  const posts = await prisma.post.createMany({
-    data: [
-      {
-        title: 'Introduction to Prisma',
-        url: 'https://blog1.com/prisma-intro',
-        author: 'user1',
-        platform: 'VELOG',
-        date: new Date('2024-12-01T10:00:00.000Z'),
-        score: 4.5,
-        thumbnail_url: 'https://example.com/thumb1.jpg',
-      },
-      {
-        title: 'Docker vs Podman',
-        url: 'https://blog2.com/docker-podman',
-        author: 'user2',
-        platform: 'TISTORY',
-        date: new Date('2024-11-25T15:30:00.000Z'),
-        score: 4.0,
-        thumbnail_url: 'https://example.com/thumb2.jpg',
-      },
-      {
-        title: 'Setting up a GitHub Action',
-        url: 'https://blog1.com/github-actions',
-        author: 'user1',
-        platform: 'GITBLOG',
-        date: new Date('2024-11-20T12:45:00.000Z'),
-        score: 5.0,
-        thumbnail_url: null,
-      },
-    ],
-  });
-
-  console.log(`${posts.count} posts added`);
-
-  // Keyword 데이터 추가
-  const keywords = await prisma.keyword.createMany({
-    data: [{ keyword: 'Prisma' }, { keyword: 'Docker' }, { keyword: 'CI/CD' }],
-  });
-
-  console.log(`${keywords.count} keywords added`);
-
-  // BookmarkPosts 관계 데이터 추가
-  await prisma.bookmark.update({
-    where: { bookmark_id: 1 },
-    data: {
-      posts: { connect: [{ post_id: 1 }, { post_id: 2 }] },
+  // **1. User 데이터 추가**
+  const users = [
+    {
+      email: 'user1@example.com',
+      password: 'password123',
+      username: 'user1',
+      blog_url: 'https://blog1.com',
     },
-  });
-
-  await prisma.bookmark.update({
-    where: { bookmark_id: 2 },
-    data: {
-      posts: { connect: [{ post_id: 3 }] },
+    {
+      email: 'user2@example.com',
+      password: 'password123',
+      username: 'user2',
+      blog_url: 'https://blog2.com',
     },
-  });
-
-  console.log(`Bookmark-Post relations added`);
-
-  // KeywordPosts 관계 데이터 추가
-  await prisma.post.update({
-    where: { post_id: 1 },
-    data: {
-      keywords: { connect: [{ keyword_id: 1 }] },
+    {
+      email: 'user3@example.com',
+      password: 'password123',
+      username: 'user3',
+      blog_url: null,
     },
-  });
+  ];
 
-  await prisma.post.update({
-    where: { post_id: 2 },
-    data: {
-      keywords: { connect: [{ keyword_id: 2 }] },
+  for (const user of users) {
+    const existingUser = await prisma.user.findUnique({
+      where: { email: user.email },
+    });
+
+    if (!existingUser) {
+      await prisma.user.create({ data: user });
+      console.log(`User ${user.email} added.`);
+    } else {
+      console.log(`User ${user.email} already exists.`);
+    }
+  }
+
+  // **2. Bookmark 데이터 추가**
+  const bookmarks = [
+    { bookmark_folder_name: 'Tech Articles', user_id: 1 },
+    { bookmark_folder_name: 'My Favorite Posts', user_id: 1 },
+    { bookmark_folder_name: 'Learning Resources', user_id: 2 },
+  ];
+
+  for (const bookmark of bookmarks) {
+    const existingBookmark = await prisma.bookmark.findFirst({
+      where: {
+        bookmark_folder_name: bookmark.bookmark_folder_name,
+        user_id: bookmark.user_id,
+      },
+    });
+
+    if (!existingBookmark) {
+      await prisma.bookmark.create({ data: bookmark });
+      console.log(`Bookmark "${bookmark.bookmark_folder_name}" added.`);
+    } else {
+      console.log(
+        `Bookmark "${bookmark.bookmark_folder_name}" already exists.`,
+      );
+    }
+  }
+
+  // **3. Post 데이터 추가**
+  const posts = [
+    {
+      title: 'Introduction to Prisma',
+      url: 'https://blog1.com/prisma-intro',
+      author: 'user1',
+      platform: Platform.GITBLOG,
+      date: new Date('2024-12-01T10:00:00Z'),
+      score: 4.5,
+      thumbnail_url:
+        'https://velog.velcdn.com/images/gold6219/post/c01489dc-6f5d-4f69-b8d7-cbbb7e60bfef/image.png',
     },
-  });
-
-  await prisma.post.update({
-    where: { post_id: 3 },
-    data: {
-      keywords: { connect: [{ keyword_id: 3 }] },
+    {
+      title: 'Docker vs Podman',
+      url: 'https://blog2.com/docker-podman',
+      author: 'user2',
+      platform: Platform.GITBLOG,
+      date: new Date('2024-11-25T15:30:00Z'),
+      score: 4.0,
+      thumbnail_url:
+        'https://velog.velcdn.com/images/gold6219/post/c01489dc-6f5d-4f69-b8d7-cbbb7e60bfef/image.png',
     },
-  });
+    {
+      title: 'Setting up a GitHub Action',
+      url: 'https://velog.io/@gold6219/PintOS-Project-3-VM-WIL',
+      author: 'user1',
+      platform: Platform.GITBLOG,
+      date: new Date('2024-11-20T12:45:00Z'),
+      score: 5.0,
+      thumbnail_url:
+        'https://velog.velcdn.com/images/gold6219/post/c01489dc-6f5d-4f69-b8d7-cbbb7e60bfef/image.png',
+    },
+    {
+      title: 'Setting up a GitHub Action',
+      url: 'https://velog.io/@gold6219/PintOS-Project-3-VM-WIL',
+      author: 'user1',
+      platform: Platform.GITBLOG,
+      date: new Date('2024-11-20T12:45:00Z'),
+      score: 5.0,
+      thumbnail_url:
+        'https://velog.velcdn.com/images/gold6219/post/c01489dc-6f5d-4f69-b8d7-cbbb7e60bfef/image.png',
+    },
+    {
+      title: 'Setting up a GitHub Action',
+      url: 'https://velog.io/@gold6219/PintOS-Project-3-VM-WIL',
+      author: 'user1',
+      platform: Platform.GITBLOG,
+      date: new Date('2024-11-20T12:45:00Z'),
+      score: 5.0,
+      thumbnail_url:
+        'https://velog.velcdn.com/images/gold6219/post/c01489dc-6f5d-4f69-b8d7-cbbb7e60bfef/image.png',
+    },
+    {
+      title: 'Setting up a GitHub Action',
+      url: 'https://velog.io/@gold6219/PintOS-Project-3-VM-WIL',
+      author: 'user1',
+      platform: Platform.GITBLOG,
+      date: new Date('2024-11-20T12:45:00Z'),
+      score: 5.0,
+      thumbnail_url:
+        'https://velog.velcdn.com/images/gold6219/post/c01489dc-6f5d-4f69-b8d7-cbbb7e60bfef/image.png',
+    },
+    {
+      title: 'Setting up a GitHub Action',
+      url: 'https://velog.io/@gold6219/PintOS-Project-3-VM-WIL',
+      author: 'user1',
+      platform: Platform.GITBLOG,
+      date: new Date('2024-11-20T12:45:00Z'),
+      score: 5.0,
+      thumbnail_url:
+        'https://velog.velcdn.com/images/gold6219/post/c01489dc-6f5d-4f69-b8d7-cbbb7e60bfef/image.png',
+    },
+    {
+      title: 'Setting up a GitHub Action',
+      url: 'https://velog.io/@gold6219/PintOS-Project-3-VM-WIL',
+      author: 'user1',
+      platform: Platform.GITBLOG,
+      date: new Date('2024-11-20T12:45:00Z'),
+      score: 5.0,
+      thumbnail_url:
+        'https://velog.velcdn.com/images/gold6219/post/c01489dc-6f5d-4f69-b8d7-cbbb7e60bfef/image.png',
+    },
+    {
+      title: 'Setting up a GitHub Action',
+      url: 'https://velog.io/@gold6219/PintOS-Project-3-VM-WIL',
+      author: 'user1',
+      platform: Platform.GITBLOG,
+      date: new Date('2024-11-20T12:45:00Z'),
+      score: 5.0,
+      thumbnail_url:
+        'https://velog.velcdn.com/images/gold6219/post/c01489dc-6f5d-4f69-b8d7-cbbb7e60bfef/image.png',
+    },
+    {
+      title: 'Setting up a GitHub Action',
+      url: 'https://velog.io/@gold6219/PintOS-Project-3-VM-WIL',
+      author: 'user1',
+      platform: Platform.GITBLOG,
+      date: new Date('2024-11-20T12:45:00Z'),
+      score: 5.0,
+      thumbnail_url:
+        'https://velog.velcdn.com/images/gold6219/post/c01489dc-6f5d-4f69-b8d7-cbbb7e60bfef/image.png',
+    },
+    {
+      title: 'Setting up a GitHub Action',
+      url: 'https://velog.io/@gold6219/PintOS-Project-3-VM-WIL',
+      author: 'user1',
+      platform: Platform.GITBLOG,
+      date: new Date('2024-11-20T12:45:00Z'),
+      score: 5.0,
+      thumbnail_url:
+        'https://velog.velcdn.com/images/gold6219/post/c01489dc-6f5d-4f69-b8d7-cbbb7e60bfef/image.png',
+    },
+    {
+      title: 'Setting up a GitHub Action',
+      url: 'https://velog.io/@gold6219/PintOS-Project-3-VM-WIL',
+      author: 'user1',
+      platform: Platform.GITBLOG,
+      date: new Date('2024-11-20T12:45:00Z'),
+      score: 5.0,
+      thumbnail_url:
+        'https://velog.velcdn.com/images/gold6219/post/c01489dc-6f5d-4f69-b8d7-cbbb7e60bfef/image.png',
+    },
+  ];
 
-  console.log(`Keyword-Post relations added`);
+  for (const post of posts) {
+    await prisma.post.create({ data: post });
+  }
 
-  // Follow 데이터 추가
-  const follows = await prisma.follow.createMany({
-    data: [
-      { follw_folder_name: 'My Tech Blogs', user_id: 1 },
-      { follw_folder_name: 'Inspiration', user_id: 2 },
-      { follw_folder_name: 'Competitors', user_id: 3 },
-    ],
-  });
+  // **4. Keyword 데이터 추가**
+  const keywords = ['Prisma', 'Docker', 'CI/CD'];
 
-  console.log(`${follows.count} follows added`);
+  for (const keyword of keywords) {
+    const existingKeyword = await prisma.keyword.findFirst({
+      where: { keyword },
+    });
+
+    if (!existingKeyword) {
+      await prisma.keyword.create({ data: { keyword } });
+      console.log(`Keyword "${keyword}" added.`);
+    } else {
+      console.log(`Keyword "${keyword}" already exists.`);
+    }
+  }
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
+  .then(async () => {
     await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
   });
