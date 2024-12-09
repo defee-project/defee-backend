@@ -4,10 +4,12 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { UserModule } from './modules/user/user.module';
+import { PostModule } from './modules/post/post.module';
 
 @Module({
   imports: [
     UserModule,
+    PostModule,
     PrismaModule,
     ConfigModule.forRoot({ isGlobal: true }),
   ],

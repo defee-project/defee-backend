@@ -1,18 +1,18 @@
-## docker-compose up -d --build 
+## docker-compose up -d --build
 ## docker-compose down
 
 services:
   defee_db:
     image: mysql:8.0
     container_name: defee_db
-    environment: 
+    environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: defee
-      MYSQL_USER: defee 
+      MYSQL_USER: defee
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       TZ: Asia/Seoul
-    ports: 
-      - "3307:3306"
+    ports:
+      - '3307:3306'
     volumes:
       - db_data:/var/lib/mysql
 
@@ -28,10 +28,10 @@ services:
       - .:/app
       - /app/node_modules
     ports:
-      - "443:3000"
+      - '443:3000'
     command: >
-      sh -c "sleep 10 && npx prisma migrate deploy && npm run start:dev"
+      sh -c "sleep 10 && npx prisma migrate deploy && npx ts-node /app/src/prisma/seed.ts && npm run start:dev"
 
 volumes:
   db_data:
-    driver: local    
+    driver: local
